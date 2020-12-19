@@ -9,6 +9,7 @@
     "deploy": "gcloud builds submit --tag gcr.io/palcode-ba70e/palcode-runner . && kubectl rollout restart deployment/palcode-runner"
   },
   "dependencies": {
+    "@google-cloud/storage": "^5.7.0",
     "dockerode": "^3.2.1",
     "express": "^4.17.1",
     "fs-extra": "^9.0.1",

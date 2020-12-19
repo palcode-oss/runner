@@ -1,4 +1,6 @@
 FROM node:14-slim
+
+RUN mkdir -m 777 /opt/palcode-runner
 WORKDIR /opt/palcode-runner
 
 COPY package.json ./

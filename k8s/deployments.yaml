@@ -20,17 +20,26 @@ spec:
         - name: dockersock
           hostPath:
             path: /var/run/docker.sock
+        - name: temporary-projects
+          hostPath:
+            path: /var/tmp/palcode-projects
+            type: DirectoryOrCreate
         - name: google-cloud-key
           secret:
             secretName: service-account-key
       containers:
         - name: socket
+          securityContext:
+            privileged: true
           image: gcr.io/palcode-ba70e/palcode-runner:latest
           ports:
             - containerPort: 8080
           volumeMounts:
             - mountPath: /var/run/docker.sock
               name: dockersock
+            - mountPath: /var/tmp/palcode-projects
+              name: temporary-projects
+              readOnly: false
             - mountPath: /var/secrets/google
               name: google-cloud-key
           env:
@@ -41,7 +50,7 @@ spec:
             - name: PAL_PYTHON_VERSION
               value: 3.9.1
             - name: PAL_STORAGE_ROOT
-              value: /mnt/user-data
+              value: /var/tmp/palcode-projects
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
 

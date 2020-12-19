@@ -1,10 +1,13 @@
-const fs = require("fs");
 const path = require("path");
 const {getTag, getStorageRoot, isValidLanguage} = require("../helpers");
 const Docker = require("dockerode");
 const docker = Docker();
 const uuid = require("uuid").v4;
 const sanitize = require("sanitize-filename");
+const installImages = require("./install-images");
+const cloneCode = require("./clone-code");
+
+installImages();
 
 function execCode(projectId, language, socket, io) {
     io.to(projectId).emit('run', {
@@ -17,8 +20,6 @@ function execCode(projectId, language, socket, io) {
         WorkingDir: '/opt/runner',
         Binds: [
             path.resolve(getStorageRoot(), sanitize(projectId)) + ':/usr/src/app:rw',
-            path.resolve(__dirname, '../startup-scripts/', language) + ':/opt/runner:ro',
-            path.resolve(__dirname, '../startup-scripts/common') + ':/opt/common:ro',
         ],
         Entrypoint: [
             // Maximum run time for Python script (ensures infinite loops aren't left running)
@@ -114,24 +115,24 @@ async function containerStop(projectId) {
 module.exports = (io) => {
     io.on('connection', (socket) => {
         socket.on('start', async (data) => {
-            if (!data.projectId || !isValidLanguage(data.language)) {
+            if (!data.projectId || !isValidLanguage(data.language) || !data.schoolId) {
                 socket.emit('run', {
                     status: 400,
                 });
                 return;
             }
 
-            const dirExists = fs.existsSync(
-                path.resolve(getStorageRoot(), sanitize(data.projectId))
-            );
-            if (!dirExists) {
+            await containerStop(data.projectId);
+
+            // clone latest code
+            try {
+                await cloneCode(data.projectId, data.schoolId);
+            } catch (e) {
                 socket.emit('run', {
                     status: 404,
                 });
                 return;
             }
-
-            await containerStop(data.projectId);
 
             // ensure we aren't broadcasting any other projects
             // this function is undocumented (?) but does exist: https://github.com/socketio/socket.io/blob/1decae341c80c0417b32d3124ca30c005240b48a/lib/socket.js#L287
