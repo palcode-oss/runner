@@ -20,9 +20,9 @@ spec:
         - name: dockersock
           hostPath:
             path: /var/run/docker.sock
-        - name: user-data
-          persistentVolumeClaim:
-            claimName: palcode-user-data
+        - name: google-cloud-key
+          secret:
+            secretName: service-account-key
       containers:
         - name: socket
           image: gcr.io/palcode-ba70e/palcode-runner:latest
@@ -31,8 +31,8 @@ spec:
           volumeMounts:
             - mountPath: /var/run/docker.sock
               name: dockersock
-            - mountPath: /mnt/user-data
-              name: user-data
+            - mountPath: /var/secrets/google
+              name: google-cloud-key
           env:
             - name: PAL_PORT
               value: "8080"
@@ -42,6 +42,8 @@ spec:
               value: 3.9.1
             - name: PAL_STORAGE_ROOT
               value: /mnt/user-data
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
 
 # API deployment
 ---
@@ -63,17 +65,17 @@ spec:
         app: palcode-api
     spec:
       volumes:
-        - name: user-data
-          persistentVolumeClaim:
-            claimName: palcode-user-data
+        - name: google-cloud-key
+          secret:
+            secretName: service-account-key
       containers:
         - name: api
           image: gcr.io/palcode-ba70e/palcode-api:latest
+          volumeMounts:
+            - mountPath: /var/secrets/google
+              name: google-cloud-key
           ports:
             - containerPort: 8080
-          volumeMounts:
-            - mountPath: /mnt/user-data
-              name: user-data
           env:
             - name: PAL_PORT
               value: "8080"
@@ -81,3 +83,5 @@ spec:
               value: "production"
             - name: PAL_STORAGE_ROOT
               value: /mnt/user-data
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json

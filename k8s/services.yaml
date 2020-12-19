@@ -5,7 +5,6 @@ metadata:
   name: palcode-runner-lb
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
-    beta.cloud.google.com/backend-config: '{"ports": {"80":"socketio-backendconfig"}}'
 spec:
   type: LoadBalancer
   selector:
@@ -40,34 +39,34 @@ metadata:
   name: cloudflare-ingress
   namespace: default
   annotations:
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.org/websocket-services: palcode-runner-lb
-    beta.cloud.google.com/backend-config: '{"default": "socketio-backendconfig"}'
-    kubernetes.io/ingress.global-static-ip-name: palcode-runner
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://palcode.dev,http://localhost:3000"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/affinity: “cookie”
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 spec:
   rules:
-    - http:
+    - host: api.palcode.dev
+      http:
         paths:
-          - path: /runner/*
-            backend:
-              serviceName: palcode-runner-lb
-              servicePort: 80
-          - path: /api/*
-            backend:
+          - backend:
               serviceName: palcode-api-lb
               servicePort: 80
-  tls:
-    - secretName: cloudflare-origin
+    - host: runner.palcode.dev
+      http:
+        paths:
+          - backend:
+              serviceName: palcode-runner-lb
+              servicePort: 80
 
-# WebSocket backend config
----
-apiVersion: cloud.google.com/v1beta1
-kind: BackendConfig
-metadata:
-  name: socketio-backendconfig
-spec:
-  timeoutSec: 1800
-  connectionDraining:
-    drainingTimeoutSec: 1800
-  sessionAffinity:
-    affinityType: "CLIENT_IP"
+  tls:
+    - secretName: runner-and-api-cloudflare
