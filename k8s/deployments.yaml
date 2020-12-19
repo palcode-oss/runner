@@ -1,0 +1,83 @@
+# Runner deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palcode-runner
+  namespace: default
+  labels:
+    app: palcode-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: palcode-runner
+  template:
+    metadata:
+      labels:
+        app: palcode-runner
+    spec:
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+        - name: user-data
+          persistentVolumeClaim:
+            claimName: palcode-user-data
+      containers:
+        - name: socket
+          image: gcr.io/palcode-ba70e/palcode-runner:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: dockersock
+            - mountPath: /mnt/user-data
+              name: user-data
+          env:
+            - name: PAL_PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: "production"
+            - name: PAL_PYTHON_VERSION
+              value: 3.9.1
+            - name: PAL_STORAGE_ROOT
+              value: /mnt/user-data
+
+# API deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: palcode-api
+  namespace: default
+  labels:
+    app: palcode-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: palcode-api
+  template:
+    metadata:
+      labels:
+        app: palcode-api
+    spec:
+      volumes:
+        - name: user-data
+          persistentVolumeClaim:
+            claimName: palcode-user-data
+      containers:
+        - name: api
+          image: gcr.io/palcode-ba70e/palcode-api:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /mnt/user-data
+              name: user-data
+          env:
+            - name: PAL_PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: "production"
+            - name: PAL_STORAGE_ROOT
+              value: /mnt/user-data

@@ -1,0 +1,73 @@
+# Runner load balancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: palcode-runner-lb
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    beta.cloud.google.com/backend-config: '{"ports": {"80":"socketio-backendconfig"}}'
+spec:
+  type: LoadBalancer
+  selector:
+    app: palcode-runner
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+
+# API load balancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: palcode-api-lb
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: LoadBalancer
+  selector:
+    app: palcode-api
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+
+# Ingress controller
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: cloudflare-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.org/websocket-services: palcode-runner-lb
+    beta.cloud.google.com/backend-config: '{"default": "socketio-backendconfig"}'
+    kubernetes.io/ingress.global-static-ip-name: palcode-runner
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /runner/*
+            backend:
+              serviceName: palcode-runner-lb
+              servicePort: 80
+          - path: /api/*
+            backend:
+              serviceName: palcode-api-lb
+              servicePort: 80
+  tls:
+    - secretName: cloudflare-origin
+
+# WebSocket backend config
+---
+apiVersion: cloud.google.com/v1beta1
+kind: BackendConfig
+metadata:
+  name: socketio-backendconfig
+spec:
+  timeoutSec: 1800
+  connectionDraining:
+    drainingTimeoutSec: 1800
+  sessionAffinity:
+    affinityType: "CLIENT_IP"

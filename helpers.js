@@ -1,11 +1,3 @@
-const admin = require("firebase-admin");
-const serviceAccount = require("../serviceAccount.json");
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: `https://${serviceAccount['project_id']}.firebaseio.com`,
-});
-
 module.exports = {
     getTag(language) {
         switch(language) {
@@ -21,22 +13,10 @@ module.exports = {
                 return 'swipl:' + (process.env.PAL_PROLOG_VERSION || '8.3.13');
         }
     },
-    getLanguageDefaultFile(language) {
-        switch (language) {
-            case 'python': return 'main.py';
-            case 'nodejs': return 'index.js';
-            case 'bash': return 'main.sh';
-            case 'java': return 'Main.java';
-            case 'prolog': return 'main.pl';
-        }
-    },
     isValidLanguage(language) {
         return ['python', 'nodejs', 'bash', 'java', 'prolog'].includes(language);
     },
     getStorageRoot() {
         return process.env.PAL_STORAGE_ROOT;
     },
-    getFirebase() {
-        return admin;
-    }
 }

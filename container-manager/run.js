@@ -16,10 +16,9 @@ function execCode(projectId, language, socket, io) {
         name: projectId,
         WorkingDir: '/opt/runner',
         Binds: [
-            '/var/run/docker.sock:/var/run/docker.sock:ro',
             path.resolve(getStorageRoot(), sanitize(projectId)) + ':/usr/src/app:rw',
-            path.resolve(__dirname, '../runner/', language) + ':/opt/runner:ro',
-            path.resolve(__dirname, '../runner/common') + ':/opt/common:ro',
+            path.resolve(__dirname, '../startup-scripts/', language) + ':/opt/runner:ro',
+            path.resolve(__dirname, '../startup-scripts/common') + ':/opt/common:ro',
         ],
         Entrypoint: [
             // Maximum run time for Python script (ensures infinite loops aren't left running)

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: palcode-user-data
+spec:
+  accessModes:
+    - ReadOnlyMany
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
