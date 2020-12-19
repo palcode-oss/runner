@@ -7,6 +7,7 @@ metadata:
   labels:
     app: palcode-runner
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   selector:
     matchLabels:
@@ -32,6 +33,10 @@ spec:
           securityContext:
             privileged: true
           image: gcr.io/palcode-ba70e/palcode-runner:latest
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "300M"
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -53,6 +58,8 @@ spec:
               value: /var/tmp/palcode-projects
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
+            - name: PAL_CPU_QUOTA
+              value: "500000000"
 
 # API deployment
 ---
@@ -64,6 +71,7 @@ metadata:
   labels:
     app: palcode-api
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   selector:
     matchLabels:
@@ -85,6 +93,10 @@ spec:
               name: google-cloud-key
           ports:
             - containerPort: 8080
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "100M"
           env:
             - name: PAL_PORT
               value: "8080"

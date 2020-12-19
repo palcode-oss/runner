@@ -6,7 +6,7 @@ const images = {
     'nodejs': 'palcode/node:' + (process.env.PAL_NODEJS_VERSION || '14.15.1'),
     'bash': 'palcode/bash:' + (process.env.PAL_BASH_VERSION || '1.0.0'),
     'java': 'palcode/java:' + (process.env.PAL_JAVA_VERSION || '16'),
-    'prolog': 'swipl:' + (process.env.PAL_PROLOG_VERSION || '8.3.13'),
+    'prolog': 'palcode/prolog:' + (process.env.PAL_PROLOG_VERSION || '8.3.13'),
 };
 
 module.exports = {
