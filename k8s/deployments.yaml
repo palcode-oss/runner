@@ -8,7 +8,7 @@ metadata:
     app: palcode-runner
 spec:
   revisionHistoryLimit: 3
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: palcode-runner
@@ -51,8 +51,6 @@ spec:
               value: "8080"
             - name: NODE_ENV
               value: "production"
-            - name: PAL_PYTHON_VERSION
-              value: 3.9.1
             - name: PAL_STORAGE_ROOT
               value: /var/tmp/palcode-projects
             - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -61,6 +59,16 @@ spec:
               value: "1000000000"
             - name: PAL_MEMORY_QUOTA
               value: "209715200"
+            - name: PAL_PYTHON_VERSION
+              value: 3.9.1
+            - name: PAL_NODEJS_VERSION
+              value: 14.15.3
+            - name: PAL_BASH_VERSION
+              value: 1.0.0
+            - name: PAL_JAVA_VERSION
+              value: "16"
+            - name: PAL_PROLOG_VERSION
+              value: 8.3.13
 
 # API deployment
 ---

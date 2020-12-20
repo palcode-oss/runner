@@ -5,11 +5,11 @@ const docker = Docker();
 const uuid = require("uuid").v4;
 const sanitize = require("sanitize-filename");
 const installImages = require("./install-images");
-const cloneCode = require("./clone-code");
+const {cloneCode, saveChanges} = require("./storage-ops");
 
 installImages();
 
-function execCode(projectId, language, socket, io) {
+function execCode(projectId, language, schoolId, io) {
     io.to(projectId).emit('run', {
         status: 200,
         message: 'Starting...'
@@ -76,13 +76,14 @@ function execCode(projectId, language, socket, io) {
                 });
             });
 
-            stream.on('end', () => {
-                // ensure we fully delete the container once it has stopped
-                containerStop(projectId);
+            stream.on('end', async () => {
                 io.to(projectId).emit('run', {
                     status: 200,
                     running: false,
                 });
+                // ensure we fully delete the container once it has stopped
+                await containerStop(projectId);
+                await saveChanges(projectId, schoolId);
             });
         });
     });
@@ -139,7 +140,7 @@ module.exports = (io) => {
             socket.leaveAll();
 
             socket.join(data.projectId);
-            execCode(data.projectId, data.language, socket, io);
+            execCode(data.projectId, data.language, data.schoolId, io);
         });
 
         socket.on('stdin', (data) => {
