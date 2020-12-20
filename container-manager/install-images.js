@@ -27,6 +27,7 @@ module.exports = async () => {
             console.log(`Installed ${tag}.`);
         } catch (e) {
             console.error(`Pulling ${tag} failed!`, e);
+            throw new Error(e);
         }
     }
 }

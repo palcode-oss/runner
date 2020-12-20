@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const socket = require("./container-manager/run");
+const installImages = require("./container-manager/install-images");
 
 app.enable('trust proxy');
 
@@ -15,6 +16,12 @@ const io = require("socket.io")(server, {
 });
 socket(io);
 
-server.listen(process.env.PAL_PORT, () => {
-    console.log("Ready on port " + process.env.PAL_PORT);
-});
+installImages()
+    .then(() => {
+        server.listen(process.env.PAL_PORT, () => {
+            console.log("Ready on port " + process.env.PAL_PORT);
+        });
+    })
+    .catch(() => {
+        process.exit(1);
+    });

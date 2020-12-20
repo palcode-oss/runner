@@ -4,10 +4,7 @@ const Docker = require("dockerode");
 const docker = Docker();
 const uuid = require("uuid").v4;
 const sanitize = require("sanitize-filename");
-const installImages = require("./install-images");
 const {cloneCode, saveChanges} = require("./storage-ops");
-
-installImages();
 
 function execCode(projectId, language, schoolId, io) {
     io.to(projectId).emit('run', {
@@ -106,8 +103,17 @@ async function containerStdin(projectId, stdin) {
 }
 
 async function containerStop(projectId) {
+    let container;
+    // run kill and remove separately; kill may fail if the container isn't already running
     try {
-        await docker.getContainer(projectId).remove({
+        container = docker.getContainer(projectId);
+        await container.kill({
+            signal: process.env.PAL_STOP_SIGNAL || 'SIGKILL',
+        });
+    } catch (e) {}
+
+    try {
+        await container.remove({
             force: true,
         });
     } catch (e) {}
@@ -143,7 +149,7 @@ module.exports = (io) => {
             execCode(data.projectId, data.language, data.schoolId, io);
         });
 
-        socket.on('stdin', (data) => {
+        socket.on('stdin', async (data) => {
             if (!data.projectId || !data.stdin) {
                 socket.emit('run', {
                     status: 400,
@@ -151,10 +157,10 @@ module.exports = (io) => {
                 return;
             }
 
-            containerStdin(data.projectId, data.stdin);
+            await containerStdin(data.projectId, data.stdin);
         });
 
-        socket.on('stop', (data) => {
+        socket.on('stop', async (data) => {
             if (!data.projectId) {
                 socket.emit('run', {
                     status: 400,
@@ -162,7 +168,12 @@ module.exports = (io) => {
                 return;
             }
 
-            containerStop(data.projectId);
+            await containerStop(data.projectId);
+            // keep the browser updated quickly if the server can't handle tons of requests
+            socket.emit('run', {
+                status: 200,
+                running: false,
+            });
         });
     });
 }
