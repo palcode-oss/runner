@@ -123,8 +123,6 @@ module.exports = (io) => {
                 return;
             }
 
-            await containerStop(data.projectId);
-
             // clone latest code
             try {
                 await cloneCode(data.projectId, data.schoolId);
@@ -134,6 +132,8 @@ module.exports = (io) => {
                 });
                 return;
             }
+
+            await containerStop(data.projectId);
 
             // ensure we aren't broadcasting any other projects
             // this function is undocumented (?) but does exist: https://github.com/socketio/socket.io/blob/1decae341c80c0417b32d3124ca30c005240b48a/lib/socket.js#L287
