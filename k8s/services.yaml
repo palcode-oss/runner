@@ -41,19 +41,39 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://palcode.dev,http://localhost:3000"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/affinity: “cookie”
+
+    nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
-    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-change-on-failure: "true"
+    nginx.ingress.kubernetes.io/session-cookie-samesite: "None"
+
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($http_origin ~* (^https?://([^/]+\.)*(localhost:3000|palcode.dev))) {
+        set $allow_origin $http_origin;
+      }
+
+      # Cors Preflight methods needs additional options and different Return Code
+      if ($request_method = 'OPTIONS') {
+        more_set_headers 'Access-Control-Allow-Origin: $allow_origin';
+        more_set_headers 'Access-Control-Allow-Credentials: true';
+        more_set_headers 'Access-Control-Allow-Methods: GET, PUT, POST, DELETE, PATCH, OPTIONS';
+        more_set_headers 'Access-Control-Allow-Headers: DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Client-Identifier';
+        more_set_headers 'Access-Control-Max-Age: 1728000';
+        more_set_headers 'Content-Type: text/plain charset=UTF-8';
+        more_set_headers 'Content-Length: 0';
+        return 204;
+      }
+
+      more_set_headers 'Access-Control-Allow-Origin: $allow_origin';
+      more_set_headers 'Access-Control-Allow-Credentials: true';
+      more_set_headers 'Access-Control-Allow-Methods: GET, PUT, POST, DELETE, PATCH, OPTIONS';
+      more_set_headers 'Access-Control-Allow-Headers: DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Client-Identifier';
 spec:
   rules:
     - host: api.palcode.dev

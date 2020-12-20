@@ -8,7 +8,7 @@ metadata:
     app: palcode-runner
 spec:
   revisionHistoryLimit: 3
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: palcode-runner
@@ -36,7 +36,6 @@ spec:
           resources:
             limits:
               cpu: "500m"
-              memory: "300M"
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -59,7 +58,9 @@ spec:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
             - name: PAL_CPU_QUOTA
-              value: "500000000"
+              value: "1000000000"
+            - name: PAL_MEMORY_QUOTA
+              value: "209715200"
 
 # API deployment
 ---
