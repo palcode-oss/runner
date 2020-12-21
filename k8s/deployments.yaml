@@ -35,8 +35,11 @@ spec:
           image: gcr.io/palcode-ba70e/palcode-runner:latest
           resources:
             limits:
-              cpu: "300m"
-              memory: "200M"
+              cpu: "1000m"
+              memory: "600M"
+            requests:
+              cpu: "500m"
+              memory: "400M"
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -56,8 +59,8 @@ spec:
               value: /var/tmp/palcode-projects
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
-            - name: PAL_CPU_QUOTA
-              value: "600000000"
+            - name: PAL_CPU_PROPORTION
+              value: "0.2"
             - name: PAL_MEMORY_QUOTA
               value: "209715200"
             - name: PAL_PYTHON_VERSION

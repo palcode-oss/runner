@@ -4,6 +4,7 @@ const Docker = require("dockerode");
 const docker = Docker();
 const uuid = require("uuid").v4;
 const sanitize = require("sanitize-filename");
+const {getMaxCPUs} = require("./resource-allocator");
 const {cloneCode, saveChanges} = require("./storage-ops");
 
 function execCode(projectId, language, schoolId, io) {
@@ -36,9 +37,7 @@ function execCode(projectId, language, schoolId, io) {
         // Maximum disk size of container in bytes
         // written as megabytes * 1048576
         DiskQuota: parseInt(process.env.PAL_DISK_QUOTA || 50 * 1048576),
-        // CPU quota in units of 10^-9 CPUs/vCPUs
-        // written as cores * 10^-9
-        NanoCPUs: parseInt(process.env.PAL_CPU_QUOTA || 0.20 * Math.pow(10, 9)),
+        NanoCPUs: getMaxCPUs(),
     }, (err, container) => {
         if (err) {
             console.log(err);
@@ -128,6 +127,11 @@ module.exports = (io) => {
                 });
                 return;
             }
+
+            socket.emit('run', {
+                status: 200,
+                message: 'Request acknowledged. Downloading code...',
+            });
 
             // clone latest code
             try {
