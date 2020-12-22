@@ -8,7 +8,6 @@ metadata:
     app: palcode-runner
 spec:
   revisionHistoryLimit: 3
-  replicas: 2
   selector:
     matchLabels:
       app: palcode-runner
@@ -17,6 +16,11 @@ spec:
       labels:
         app: palcode-runner
     spec:
+      tolerations:
+        - key: high-cpu
+          operator: Equal
+          value: "true"
+          effect: PreferNoSchedule
       volumes:
         - name: dockersock
           hostPath:
@@ -35,11 +39,11 @@ spec:
           image: gcr.io/palcode-ba70e/palcode-runner:latest
           resources:
             limits:
-              cpu: "1000m"
-              memory: "600M"
+              cpu: "600m"
+              memory: "500M"
             requests:
-              cpu: "500m"
-              memory: "400M"
+              cpu: "200m"
+              memory: "150M"
           ports:
             - containerPort: 8080
           volumeMounts:
@@ -73,49 +77,3 @@ spec:
               value: "16"
             - name: PAL_PROLOG_VERSION
               value: 8.3.13
-
-# API deployment
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: palcode-api
-  namespace: default
-  labels:
-    app: palcode-api
-spec:
-  revisionHistoryLimit: 3
-  replicas: 2
-  selector:
-    matchLabels:
-      app: palcode-api
-  template:
-    metadata:
-      labels:
-        app: palcode-api
-    spec:
-      volumes:
-        - name: google-cloud-key
-          secret:
-            secretName: service-account-key
-      containers:
-        - name: api
-          image: gcr.io/palcode-ba70e/palcode-api:latest
-          volumeMounts:
-            - mountPath: /var/secrets/google
-              name: google-cloud-key
-          ports:
-            - containerPort: 8080
-          resources:
-            limits:
-              cpu: "100m"
-              memory: "80M"
-          env:
-            - name: PAL_PORT
-              value: "8080"
-            - name: NODE_ENV
-              value: "production"
-            - name: PAL_STORAGE_ROOT
-              value: /mnt/user-data
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/key.json
