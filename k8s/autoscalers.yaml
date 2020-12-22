@@ -15,33 +15,13 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 15
+          averageUtilization: 5
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: 20
-
----
-apiVersion: autoscaling/v2beta2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: api-scaler
-  namespace: default
-spec:
-  maxReplicas: 3
-  minReplicas: 1
-  scaleTargetRef:
-    kind: Deployment
-    name: palcode-api
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 5
+          averageUtilization: 10
 
 ---
 apiVersion: autoscaling/v2beta2
