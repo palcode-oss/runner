@@ -13,6 +13,7 @@ app.get(['/', '/runner/'], (req, res) => {
 const server = require("http").createServer(app);
 const ws = new WebSocket.Server({
     server,
+    path: '/runner/socket',
 });
 
 initListeners(ws);
