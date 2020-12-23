@@ -30,7 +30,7 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
     for await (const file of paths) {
         const promise = async () => {
             // don't upload ignored files
-            if (uploadIgnoredFiles.some(e => e.startsWith(file.path))) {
+            if (uploadIgnoredFiles.some(e => file.path.startsWith(e))) {
                 return;
             }
 
@@ -64,8 +64,6 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
 
         promises.push(promise());
     }
-
-    console.log(await Promise.allSettled(promises));
 
     // delete any cloud files that are now obsolete — especially important for deleted node_modules or venv
     const [cloudFiles] = await bucket.getFiles({
