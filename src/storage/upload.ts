@@ -1,5 +1,5 @@
 import sanitize from 'sanitize-filename';
-import recursiveReadDir from 'recursive-readdir';
+import readdirp from 'readdirp';
 import path from 'path';
 import { getBucket, getStorageRoot } from '../helpers';
 import { getDownloadTime, getFileModificationTime } from './timing';
@@ -13,36 +13,29 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
     const sanitizedProjectId = sanitize(projectId || '');
     if (!sanitizedProjectId) throw new Error("No project ID provided!");
 
-    const paths = await recursiveReadDir(
+    const paths = readdirp(
         path.resolve(getStorageRoot(), sanitizedProjectId),
     );
-
-    if (paths.length === 0) return;
 
     const lastDownloadTime = await getDownloadTime(sanitizedProjectId);
 
     const bucket = getBucket(schoolId);
-    // this string should appear at the start of all file names; we need to strip it
-    const charactersToStrip = path.join(getStorageRoot(), sanitizedProjectId).length;
     const promises = [];
     const activeCloudStorageFiles: string[] = [];
-    for (const file of paths) {
+    for await (const file of paths) {
         const promise = async () => {
-            const strippedFileName = file.substring(charactersToStrip);
-
             // don't upload ignored files
-            // strip another + 1 for the / at the start of the file name
-            if (uploadIgnoredFiles.includes(strippedFileName.substring(1))) {
+            if (uploadIgnoredFiles.includes(file.path)) {
                 return;
             }
 
             // add this after the previous 'if', because we want to delete previously-uploaded ignored files
-            const cloudStorageFileName = path.join(sanitizedProjectId, strippedFileName);
+            const cloudStorageFileName = path.join(sanitizedProjectId, file.path);
             activeCloudStorageFiles.push(cloudStorageFileName);
 
             // detect if this file has been modified locally since the last download event
             const mtimeMs = await getFileModificationTime(
-                path.resolve(file),
+                path.resolve(file.fullPath),
             );
 
             if (mtimeMs) {
@@ -51,11 +44,13 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
                 if (fileLastModified <= lastDownloadTime) {
                     return;
                 }
+            } else {
+                // in this case, we're unable to access the file so we should skip the file
+                return;
             }
 
             const contents = (await fs.readFile(
-                // 'file' should already be a full path
-                path.resolve(file),
+                path.resolve(file.fullPath),
             )).toString('utf8');
 
             await bucket.file(cloudStorageFileName)
@@ -65,7 +60,7 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
         promises.push(promise());
     }
 
-    await Promise.allSettled(promises);
+    console.log(await Promise.allSettled(promises));
 
     // delete any cloud files that are now obsolete — especially important for deleted node_modules or venv
     const [cloudFiles] = await bucket.getFiles({

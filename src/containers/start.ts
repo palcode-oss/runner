@@ -6,6 +6,7 @@ import path from 'path';
 import sanitize from 'sanitize-filename';
 import { getMaxCPUs } from './resources';
 import { initStdoutListeners } from './stdout';
+import type { Container } from 'dockerode';
 
 export const startContainer = async (
     message: StartMessage,
@@ -18,7 +19,7 @@ export const startContainer = async (
         message: 'start',
     });
 
-    let container;
+    let container: Container;
     try {
         container = await docker.createContainer({
             name: message.projectId,
@@ -57,6 +58,7 @@ export const startContainer = async (
             running: false,
             message: 'run_fail',
         });
+        return;
     }
 
     if (!container) return;
@@ -67,12 +69,13 @@ export const startContainer = async (
         message: 'run_success',
     });
 
-    await container.start();
     container.attach({
         stream: true,
         stdout: true,
         stderr: true,
-    }, (err, stream) => {
+    }, async (err, stream) => {
         initStdoutListeners(socket, message, stream);
+        // only start the container once we've attached
+        await container.start();
     });
 }
