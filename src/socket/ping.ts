@@ -4,12 +4,12 @@ interface LiveWebSocket extends WebSocket {
     isAlive?: boolean;
 }
 
-export const isSocketAlive = (socket: WebSocket): boolean => {
+const isSocketAlive = (socket: WebSocket): boolean => {
     const potentiallyAugmentedWebSocket = socket as LiveWebSocket;
     return !!potentiallyAugmentedWebSocket.isAlive;
 }
 
-export const setSocketAlive = (socket: WebSocket, isAlive: boolean) => {
+const setSocketAlive = (socket: WebSocket, isAlive: boolean) => {
     const augmentedWebSocket = socket as LiveWebSocket;
     augmentedWebSocket.isAlive = isAlive;
 }
@@ -23,4 +23,12 @@ export const initPinging = (ws: Server): NodeJS.Timeout => {
             socket.ping();
         });
     }, 15000);
+}
+
+export const initPonging = (socket: WebSocket) => {
+    setSocketAlive(socket, true);
+
+    socket.on('pong', () => {
+        setSocketAlive(socket, true);
+    });
 }

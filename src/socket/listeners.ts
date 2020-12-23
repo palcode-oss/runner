@@ -1,5 +1,5 @@
 import type { Server } from "ws";
-import { initPinging, setSocketAlive } from './ping';
+import { initPinging, initPonging } from './ping';
 import { parseMessage } from './parse';
 import { handleStart } from './handlers/start';
 import { handleStop } from './handlers/stop';
@@ -9,11 +9,7 @@ export const initListeners = (ws: Server) => {
     const pingInterval = initPinging(ws);
 
     ws.on('connection', socket => {
-        setSocketAlive(socket, true);
-
-        socket.on('pong', () => {
-            setSocketAlive(socket, true);
-        });
+        initPonging(socket);
 
         socket.on('message', data => {
             const parsedMessage = parseMessage(data);
