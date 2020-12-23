@@ -1,10 +1,10 @@
-const Docker = require("dockerode");
-const docker = Docker();
-const {getTags} = require("../helpers");
+import { getDockerodeSingleton, getTags } from './helpers';
 
-function pullWithPromise(tag) {
-    return new Promise((resolve, reject) => {
-        docker.pull(tag, function (err, stream) {
+function pullWithPromise(tag: string) {
+    const docker = getDockerodeSingleton();
+
+    return new Promise<void>((resolve, reject) => {
+        docker.pull(tag, {}, function (err: any, stream: any) {
             if (err) {
                 reject(err);
                 return;
@@ -13,13 +13,13 @@ function pullWithPromise(tag) {
             docker.modem.followProgress(
                 stream,
                 () => resolve(),
-                () => undefined,
+                (): void => undefined,
             );
         });
     });
 }
 
-module.exports = async () => {
+export const installImages = async () => {
     const tags = getTags();
     for (const tag of tags) {
         try {
