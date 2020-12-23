@@ -30,7 +30,7 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
     for await (const file of paths) {
         const promise = async () => {
             // don't upload ignored files
-            if (!uploadIgnoredFiles.some(e => e.startsWith(file.path))) {
+            if (uploadIgnoredFiles.some(e => e.startsWith(file.path))) {
                 return;
             }
 
