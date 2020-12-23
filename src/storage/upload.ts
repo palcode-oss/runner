@@ -7,6 +7,11 @@ import * as fs from 'fs-extra';
 
 const uploadIgnoredFiles = [
     '.palcode.lock',
+    // we prefer caching packages locally
+    // session affinity means that a user will stay connected to the same server for their whole browser session
+    // the server will only delete locally cached project data when it is preempted
+    'env/',
+    'node_modules/',
 ];
 
 export const uploadCode = async (projectId: string, schoolId: string) => {
@@ -25,7 +30,7 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
     for await (const file of paths) {
         const promise = async () => {
             // don't upload ignored files
-            if (uploadIgnoredFiles.includes(file.path)) {
+            if (!uploadIgnoredFiles.some(e => e.startsWith(file.path))) {
                 return;
             }
 
