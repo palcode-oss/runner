@@ -1,13 +1,9 @@
-import { ResponseMessage } from '../types';
 import type WebSocket from 'ws';
+import { encode, ServerMessage } from 'palcode-sockets';
 
-export const serializeMessage = (message: ResponseMessage): string => {
-    const stringJSON = JSON.stringify(message);
-    return Buffer.from(stringJSON, 'utf8').toString('base64');
-}
-
-export const sendSerializedMessage = (socket: WebSocket, message: ResponseMessage): void => {
+export const sendSerializedMessage = (socket: WebSocket, message: ServerMessage): void => {
     try {
-        socket.send(serializeMessage(message));
+        const serializedMessage = encode(message);
+        socket.send(serializedMessage);
     } catch (e) {}
 }

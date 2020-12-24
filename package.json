@@ -16,10 +16,9 @@
     "fs-extra": "^9.0.1",
     "lodash": "^4.17.20",
     "md5-file": "^5.0.0",
+    "palcode-sockets": "^1.0.2",
     "readdirp": "^3.5.0",
     "sanitize-filename": "^1.6.3",
-    "socket.io": "^3.0.4",
-    "uuid": "^8.3.2",
     "ws": "^7.4.1"
   },
   "devDependencies": {

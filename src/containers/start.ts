@@ -1,4 +1,3 @@
-import { StartMessage } from '../types';
 import type WebSocket from 'ws';
 import { sendSerializedMessage } from '../socket/serialize';
 import { getDockerodeSingleton, getNumericEnv, getStorageRoot, getTag } from '../helpers';
@@ -7,6 +6,7 @@ import sanitize from 'sanitize-filename';
 import { getMaxCPUs } from './resources';
 import { initStdoutListeners } from './stdout';
 import type { Container } from 'dockerode';
+import { StartMessage } from 'palcode-sockets';
 
 export const startContainer = async (
     message: StartMessage,

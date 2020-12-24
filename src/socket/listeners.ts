@@ -1,9 +1,9 @@
 import type { Server } from "ws";
 import { initPinging, initPonging } from './ping';
-import { parseMessage } from './parse';
 import { handleStart } from './handlers/start';
 import { handleStop } from './handlers/stop';
 import { handleStdin } from './handlers/stdin';
+import { decode, isClientMessage } from 'palcode-sockets';
 
 export const initListeners = (ws: Server) => {
     const pingInterval = initPinging(ws);
@@ -12,8 +12,8 @@ export const initListeners = (ws: Server) => {
         initPonging(socket);
 
         socket.on('message', data => {
-            const parsedMessage = parseMessage(data);
-            if (!parsedMessage) return;
+            const parsedMessage = decode(data as string);
+            if (!parsedMessage || !isClientMessage(parsedMessage)) return;
 
             switch (parsedMessage.instruction) {
                 case 'start':

@@ -1,8 +1,8 @@
 import type WebSocket from 'ws';
 import { sendSerializedMessage } from '../socket/serialize';
 import { stopContainer } from './stop';
-import { StartMessage } from '../types';
 import { uploadCode } from '../storage/upload';
+import { StartMessage } from 'palcode-sockets';
 
 export const initStdoutListeners = (
     socket: WebSocket,

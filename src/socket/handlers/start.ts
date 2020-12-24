@@ -1,10 +1,10 @@
-import { StartMessage } from '../../types';
 import type WebSocket from 'ws';
 import { isValidLanguage } from '../../helpers';
 import { sendSerializedMessage } from '../serialize';
 import { cloneCode } from '../../storage/clone';
 import { stopContainer } from '../../containers/stop';
 import { startContainer } from '../../containers/start';
+import { StartMessage } from 'palcode-sockets';
 
 export const handleStart = async (
     message: StartMessage,
