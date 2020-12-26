@@ -1,4 +1,5 @@
 import { getFirebase } from '../helpers';
+import os from 'os';
 
 export interface ResourceLimits {
     NanoCPUs: number;
@@ -31,13 +32,13 @@ export const getResources = async (schoolId: string): Promise<ResourceLimits> =>
     let RAM = 0;
 
     if (school.resources?.CPUs) {
-        NanoCPUs = school.resources.CPUs * Math.pow(10, 9);
+        NanoCPUs = Math.min(school.resources.CPUs, os.cpus().length) * Math.pow(10, 9);
     } else {
         throw new Error("No CPUs allocated for school");
     }
 
     if (school.resources?.RAM) {
-        RAM = school.resources.RAM * 1048576;
+        RAM = Math.min(school.resources.RAM * 1048576, os.totalmem());
     } else {
         throw new Error("No RAM allocated for school");
     }
