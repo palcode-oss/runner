@@ -1,6 +1,12 @@
 import {Storage} from '@google-cloud/storage';
 import Dockerode from 'dockerode';
+import firebaseAdmin from 'firebase-admin';
+
 const storage = new Storage();
+firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.applicationDefault(),
+});
+
 const docker = new Dockerode();
 
 const images : {
@@ -37,6 +43,10 @@ export const getStorageRoot = (): string => {
 export const getBucket = (schoolId: any) => {
     if (!schoolId || typeof schoolId !== 'string') throw new Error("No School ID provided!");
     return storage.bucket('palcode-school-' + schoolId.toLowerCase());
+}
+
+export const getFirebase = () => {
+    return firebaseAdmin;
 }
 
 export const getDockerodeSingleton = () => {

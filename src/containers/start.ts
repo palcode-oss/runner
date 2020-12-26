@@ -3,16 +3,27 @@ import { sendSerializedMessage } from '../socket/serialize';
 import { getDockerodeSingleton, getNumericEnv, getStorageRoot, getTag } from '../helpers';
 import path from 'path';
 import sanitize from 'sanitize-filename';
-import { getMaxCPUs } from './resources';
 import { initStdoutListeners } from './stdout';
 import type { Container } from 'dockerode';
 import { StartMessage } from 'palcode-sockets';
+import { getResources, ResourceLimits } from './resources';
 
 export const startContainer = async (
     message: StartMessage,
     socket: WebSocket
 ): Promise<void> => {
     const docker = getDockerodeSingleton();
+
+    let resources: ResourceLimits | undefined;
+    try {
+        resources = await getResources(message.schoolId);
+    } catch (e) {
+        sendSerializedMessage(socket, {
+            status: 404,
+            message: 'missing_resource_allocations',
+        });
+        return;
+    }
 
     sendSerializedMessage(socket, {
         status: 200,
@@ -41,14 +52,13 @@ export const startContainer = async (
                 // essential to preventing forkbomb/DDoS attacks
                 // https://github.com/aaronryank/fork-bomb/blob/master/fork-bomb.py
                 PidsLimit: getNumericEnv('PAL_PID_LIMIT', 25),
-                // Maximum RAM consumption of container in bytes
-                // written as megabytes * 1048576
-                Memory: getNumericEnv('PAL_MEMORY_QUOTA', 100 * 1048576),
                 // Maximum disk size of container in bytes
                 // written as megabytes * 1048576
                 DiskQuota: getNumericEnv('PAL_DISK_QUOTA', 50 * 1048576),
+
+                Memory: resources.RAM,
                 // @ts-ignore grr
-                NanoCPUs: getMaxCPUs(),
+                NanoCPUs: resources.NanoCPUs,
             },
         });
     } catch (e) {
