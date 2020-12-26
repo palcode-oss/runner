@@ -20,6 +20,7 @@ export const startContainer = async (
     } catch (e) {
         sendSerializedMessage(socket, {
             status: 404,
+            running: false,
             message: 'missing_resource_allocations',
         });
         return;

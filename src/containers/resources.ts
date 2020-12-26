@@ -37,7 +37,7 @@ export const getResources = async (schoolId: string): Promise<ResourceLimits> =>
     }
 
     if (school.resources?.RAM) {
-        RAM = school.resources.RAM;
+        RAM = school.resources.RAM * 1048576;
     } else {
         throw new Error("No RAM allocated for school");
     }
