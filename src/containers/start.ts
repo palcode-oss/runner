@@ -38,10 +38,10 @@ export const startContainer = async (
             Image: getTag(message.language),
             WorkingDir: '/opt/runner',
             Entrypoint: [
-                // Maximum run time for Python script (ensures infinite loops aren't left running)
+                // Maximum run time for script (ensures infinite loops aren't left running)
                 // written in minutes as a string
                 // see https://linux.die.net/man/1/timeout
-                "./run.sh", getNumericEnv('PAL_TIMEOUT', 10) + "m",
+                "./run", getNumericEnv('PAL_TIMEOUT', 10) + "m", message.language
             ],
             OpenStdin: true,
             Tty: true,
