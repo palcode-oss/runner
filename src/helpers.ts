@@ -18,6 +18,7 @@ const images : {
     'java': 'palcode/java:' + (process.env.PAL_JAVA_VERSION),
     'prolog': 'palcode/prolog:' + (process.env.PAL_PROLOG_VERSION),
     'go': 'palcode/go:' + (process.env.PAL_GO_VERSION),
+    'cpp': 'palcode/cpp:' + (process.env.PAL_CPP_VERSION),
 };
 
 export const getTag = (language: string) => {
@@ -29,7 +30,7 @@ export const getTags = () => {
 }
 
 export const isValidLanguage = (language: any) => {
-    return ['python', 'nodejs', 'bash', 'java', 'prolog', 'go'].includes(language);
+    return ['python', 'nodejs', 'bash', 'java', 'prolog', 'go', 'cpp'].includes(language);
 }
 
 export const getStorageRoot = (): string => {
