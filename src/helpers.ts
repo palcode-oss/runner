@@ -1,6 +1,7 @@
 import {Storage} from '@google-cloud/storage';
 import Dockerode from 'dockerode';
 import firebaseAdmin from 'firebase-admin';
+import { languageData, SupportedLanguage } from 'palcode-types';
 
 const storage = new Storage();
 firebaseAdmin.initializeApp({
@@ -9,28 +10,20 @@ firebaseAdmin.initializeApp({
 
 const docker = new Dockerode();
 
-const images : {
-    [language: string]: string;
-} = {
-    'python': 'palcode/python:' + (process.env.PAL_PYTHON_VERSION),
-    'nodejs': 'palcode/node:' + (process.env.PAL_NODEJS_VERSION),
-    'bash': 'palcode/bash:' + (process.env.PAL_BASH_VERSION),
-    'java': 'palcode/java:' + (process.env.PAL_JAVA_VERSION),
-    'prolog': 'palcode/prolog:' + (process.env.PAL_PROLOG_VERSION),
-    'go': 'palcode/go:' + (process.env.PAL_GO_VERSION),
-    'cpp': 'palcode/cpp:' + (process.env.PAL_CPP_VERSION),
-};
+export const getTag = (languageName: SupportedLanguage) => {
+    const language = languageData.find(e => e.names.code === languageName);
+    if (!language) {
+        throw new Error("Tag not found!");
+    }
 
-export const getTag = (language: string) => {
-    return images[language];
+    const imageName = language.names.image;
+    const imageVersion = process.env[`PAL_${imageName.toUpperCase()}_VERSION`];
+    return `palcode/${imageName}:${imageVersion}`;
 }
 
 export const getTags = () => {
-    return Object.values(images);
-}
-
-export const isValidLanguage = (language: any) => {
-    return ['python', 'nodejs', 'bash', 'java', 'prolog', 'go', 'cpp'].includes(language);
+    return languageData
+        .map(language => getTag(language.names.code));
 }
 
 export const getStorageRoot = (): string => {

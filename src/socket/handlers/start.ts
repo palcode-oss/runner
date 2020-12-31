@@ -1,16 +1,16 @@
 import type WebSocket from 'ws';
-import { isValidLanguage } from '../../helpers';
 import { sendSerializedMessage } from '../serialize';
 import { cloneCode } from '../../storage/clone';
 import { stopContainer } from '../../containers/stop';
 import { startContainer } from '../../containers/start';
 import { StartMessage } from 'palcode-sockets';
+import { isValidLanguage } from 'palcode-types';
 
 export const handleStart = async (
     message: StartMessage,
     socket: WebSocket
 ): Promise<void> => {
-    if (!message.projectId || !isValidLanguage(message.language) || !message.schoolId) {
+    if (!message.projectId || !isValidLanguage(message.language, 'code') || !message.schoolId) {
         sendSerializedMessage(socket, {
             status: 400
         });

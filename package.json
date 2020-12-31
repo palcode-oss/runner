@@ -18,6 +18,7 @@
     "lodash": "^4.17.20",
     "md5-file": "^5.0.0",
     "palcode-sockets": "^1.0.3",
+    "palcode-types": "^1.0.1",
     "readdirp": "^3.5.0",
     "sanitize-filename": "^1.6.3",
     "ws": "^7.4.1"
