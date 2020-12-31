@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: runner
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: runner
+  revisionHistoryLimit: 3
+  minReadySeconds: 30
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: runner
+    spec:
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+        - name: projects
+          hostPath:
+            path: /var/tmp/palcode-projects
+            type: DirectoryOrCreate
+      containers:
+        - name: ws-api
+          image: gcr.io/palcode-ba70e/palcode-runner
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: dockersock
+            - mountPath: /var/tmp/palcode-projects
+              name: projects

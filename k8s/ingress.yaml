@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: cloudflare
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "cloudflare-ip"
+spec:
+  tls:
+    - hosts:
+        - runner.palcode.dev
+      secretName: cloudflare-runner-origin
+  rules:
+    - host: runner.palcode.dev
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: runner-lb
+              servicePort: 80
