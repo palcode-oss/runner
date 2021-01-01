@@ -25,7 +25,7 @@ To make your life as easy as possible, PalCode Runner is deployed as a Docker im
     docker run -d -p <your host port>:<PalCode Runner port (PAL_PORT)> \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v <your host path>:<PalCode Runner path (PAL_STORAGE_ROOT)> \
-        --name palcode-runner
+        --name palcode-runner \
         palcode/runner
     ```
 
