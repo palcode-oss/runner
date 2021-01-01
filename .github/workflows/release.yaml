@@ -28,4 +28,4 @@ jobs:
           cmd: deploy-oss
 
       - name: Tag image with version
-        run: docker image tag palcode/runner palcode/runner:${{ GITHUB_REF }}
+        run: docker image tag palcode/runner palcode/runner:${{ env.GITHUB_REF }}
