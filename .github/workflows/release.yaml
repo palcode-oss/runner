@@ -25,6 +25,11 @@ jobs:
       - name: Install packages
         uses: borales/actions-yarn@v2.0.0
         with:
+          cmd: install
+
+      - name: Compile and build image
+        uses: borales/actions-yarn@v2.0.0
+        with:
           cmd: deploy-oss
 
       - name: Tag image with version
