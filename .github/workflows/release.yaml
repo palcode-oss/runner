@@ -43,3 +43,4 @@ jobs:
         with:
           push: true
           tags: palcode/runner:${{ steps.tagName.outputs.tag }}
+          platforms: linux/amd64,linux/arm64
