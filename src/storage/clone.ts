@@ -1,5 +1,5 @@
 import sanitize from 'sanitize-filename';
-import { getBucket, getStorageRoot } from '../helpers';
+import { getBucket, getNewAsyncQueue, getStorageRoot } from '../helpers';
 import path from 'path';
 import { getLocalChecksum } from './checksum';
 import * as fs from 'fs-extra';
@@ -18,6 +18,7 @@ export const cloneCode = async (projectId: string, schoolId: string) => {
 
     // use parallel execution here because each request has a TCP handshake overhead
     const promises = [];
+    const queue = getNewAsyncQueue();
     for (const file of files) {
         const promise = async () => {
             // file.name should already include the prefix (i.e. the projectId) as well as any subdirectories
@@ -36,9 +37,9 @@ export const cloneCode = async (projectId: string, schoolId: string) => {
             );
         };
 
-        promises.push(promise());
+        promises.push(promise);
     }
 
-    await Promise.allSettled(promises);
+    await queue.addAll(promises);
     await setDownloadTime(sanitizedProjectId);
 }

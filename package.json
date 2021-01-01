@@ -17,6 +17,7 @@
     "fs-extra": "^9.0.1",
     "lodash": "^4.17.20",
     "md5-file": "^5.0.0",
+    "p-queue": "^6.6.2",
     "palcode-sockets": "^1.1.0",
     "palcode-types": "^1.0.3",
     "readdirp": "^3.5.0",

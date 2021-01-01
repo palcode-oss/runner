@@ -2,6 +2,7 @@ import {Storage} from '@google-cloud/storage';
 import Dockerode from 'dockerode';
 import firebaseAdmin from 'firebase-admin';
 import { languageData, SupportedLanguage } from 'palcode-types';
+import PQueue from 'p-queue';
 
 const storage = new Storage();
 firebaseAdmin.initializeApp({
@@ -56,4 +57,10 @@ export const getNumericEnv = (name: string, fallback: number): number => {
     } else {
         return fallback;
     }
+}
+
+export const getNewAsyncQueue = () => {
+    return new PQueue({
+        concurrency: getNumericEnv('PAL_MAX_CONCURRENCY', 4),
+    });
 }

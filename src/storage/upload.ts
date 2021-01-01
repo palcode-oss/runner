@@ -1,7 +1,7 @@
 import sanitize from 'sanitize-filename';
 import readdirp from 'readdirp';
 import path from 'path';
-import { getBucket, getStorageRoot } from '../helpers';
+import { getBucket, getNewAsyncQueue, getStorageRoot } from '../helpers';
 import { getDownloadTime, getFileModificationTime } from './timing';
 import * as fs from 'fs-extra';
 
@@ -26,6 +26,7 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
 
     const bucket = getBucket(schoolId);
     const promises = [];
+    const queue = getNewAsyncQueue();
     const activeCloudStorageFiles: string[] = [];
     for await (const file of paths) {
         const promise = async () => {
@@ -62,8 +63,10 @@ export const uploadCode = async (projectId: string, schoolId: string) => {
                 .save(contents);
         };
 
-        promises.push(promise());
+        promises.push(promise);
     }
+
+    await queue.addAll(promises);
 
     // delete any cloud files that are now obsolete — especially important for deleted node_modules or venv
     const [cloudFiles] = await bucket.getFiles({

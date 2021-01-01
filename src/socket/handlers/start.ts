@@ -27,6 +27,7 @@ export const handleStart = async (
     try {
         await cloneCode(message.projectId, message.schoolId);
     } catch (e) {
+        console.warn(e);
         sendSerializedMessage(socket, {
             status: 404,
         });

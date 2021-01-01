@@ -16,6 +16,11 @@ spec:
       labels:
         app: runner
     spec:
+      tolerations:
+        - key: priority
+          operator: Equal
+          value: high
+          effect: NoExecute
       volumes:
         - name: dockersock
           hostPath:
@@ -24,6 +29,9 @@ spec:
           hostPath:
             path: /var/tmp/palcode-projects
             type: DirectoryOrCreate
+        - name: google-cloud-key
+          secret:
+            secretName: api-key
       containers:
         - name: ws-api
           image: gcr.io/palcode-ba70e/palcode-runner
@@ -36,3 +44,8 @@ spec:
               name: dockersock
             - mountPath: /var/tmp/palcode-projects
               name: projects
+            - mountPath: /var/secrets/google
+              name: google-cloud-key
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
