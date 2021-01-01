@@ -35,6 +35,8 @@ jobs:
 
       - uses: olegtarasov/get-tag@v2
         id: tagName
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
