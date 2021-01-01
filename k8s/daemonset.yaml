@@ -20,7 +20,7 @@ spec:
         - key: priority
           operator: Equal
           value: high
-          effect: NoExecute
+          effect: PreferNoSchedule
       volumes:
         - name: dockersock
           hostPath:

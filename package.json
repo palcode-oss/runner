@@ -5,9 +5,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "prestart": "yarn run build",
     "start": "node dist/index.js",
     "build": "tsc",
-    "deploy": "yarn run build && gcloud builds submit --tag gcr.io/palcode-ba70e/palcode-runner ."
+    "deploy": "yarn run build && gcloud builds submit --tag gcr.io/palcode-ba70e/palcode-runner .",
+    "deploy-oss": "yarn run build && docker build -t palcode/runner ."
   },
   "dependencies": {
     "@google-cloud/storage": "^5.7.0",
