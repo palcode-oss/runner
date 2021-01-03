@@ -9,7 +9,6 @@ spec:
   tls:
     - hosts:
         - runner.palcode.dev
-        - lsp.palcode.dev
       secretName: cloudflare-origin
   rules:
     - host: runner.palcode.dev
@@ -18,11 +17,4 @@ spec:
           - path: /*
             backend:
               serviceName: runner-lb
-              servicePort: 80
-    - host: lsp.palcode.dev
-      http:
-        paths:
-          - path: /*
-            backend:
-              serviceName: lsp-lb
               servicePort: 80

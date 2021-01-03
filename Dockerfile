@@ -24,4 +24,4 @@ COPY yarn.lock ./
 RUN yarn install --production
 COPY . ./
 
-CMD [ "yarn", "run", "start" ]
+CMD [ "node", "dist/index.js" ]
