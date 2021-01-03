@@ -9,10 +9,8 @@ spec:
   tls:
     - hosts:
         - runner.palcode.dev
-      secretName: cloudflare-runner-origin
-    - hosts:
         - lsp.palcode.dev
-      secretName: lsp-origin
+      secretName: cloudflare-origin
   rules:
     - host: runner.palcode.dev
       http:

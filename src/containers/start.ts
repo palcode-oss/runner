@@ -8,7 +8,7 @@ import type { Container } from 'dockerode';
 import { StartMessage } from 'palcode-sockets';
 import { getResources, ResourceLimits } from './resources';
 
-export const startContainer = async (
+export const startRunner = async (
     message: StartMessage,
     socket: WebSocket
 ): Promise<void> => {

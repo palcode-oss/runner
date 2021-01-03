@@ -2,7 +2,7 @@ import type WebSocket from 'ws';
 import { sendSerializedMessage } from '../serialize';
 import { cloneCode } from '../../storage/clone';
 import { stopContainer } from '../../containers/stop';
-import { startContainer } from '../../containers/start';
+import { startRunner } from '../../containers/start';
 import { StartMessage } from 'palcode-sockets';
 import { isValidLanguage } from 'palcode-types';
 
@@ -34,5 +34,5 @@ export const handleStart = async (
         return;
     }
 
-    await startContainer(message, socket);
+    await startRunner(message, socket);
 }
