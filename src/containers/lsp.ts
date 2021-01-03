@@ -69,6 +69,14 @@ export const startLsp = async (
 
     stream.on('end', () => {
         socket.close();
+        container.remove();
+    });
+
+    socket.on('close', async () => {
+        try {
+            await container.stop();
+            await container.remove();
+        } catch (e) {}
     });
 
     return async (incomingData: string) => {
