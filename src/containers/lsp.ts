@@ -4,6 +4,7 @@ import { ClientLspInitMessage } from 'palcode-sockets';
 import path from 'path';
 import sanitize from 'sanitize-filename';
 import { cloneCode } from '../storage/clone';
+import { getResources, ResourceLimits } from './resources';
 
 type Write = (data: any) => Promise<void>;
 
@@ -12,6 +13,14 @@ export const startLsp = async (
     socket: WebSocket,
     readyCallback: () => void,
 ): Promise<Write | undefined> => {
+    let resources: ResourceLimits;
+    try {
+        resources = await getResources(data.schoolId);
+    } catch (e) {
+        return;
+    }
+    if(!resources) return;
+
     try {
         await cloneCode(data.projectId, data.schoolId);
     } catch (e) {
@@ -19,23 +28,30 @@ export const startLsp = async (
     }
 
     const docker = getDockerodeSingleton();
-    const container = await docker.createContainer({
-        Image: 'palcode/lsp:latest',
-        WorkingDir: '/opt/lsp',
-        Entrypoint: [
-            "node", "dist/index.js", data.language,
-        ],
-        Tty: true,
-        OpenStdin: true,
-        HostConfig: {
-            Binds: [
-                path.resolve(getStorageRoot(), sanitize(data.projectId)) + ':/usr/src/app:rw',
+    const containerName = `lsp-${data.projectId}`;
+    let container = docker.getContainer(containerName);
+    try {
+        await container.inspect();
+    } catch (e) {
+        container = await docker.createContainer({
+            name: containerName,
+            Image: 'palcode/lsp:latest',
+            WorkingDir: '/opt/lsp',
+            Entrypoint: [
+                "node", "dist/index.js", data.language,
             ],
-            Memory: 500 * 1048576,
-            // @ts-ignore
-            NanoCPUs: 0.4 * Math.pow(10, 9),
-        },
-    });
+            Tty: true,
+            OpenStdin: true,
+            HostConfig: {
+                Binds: [
+                    path.resolve(getStorageRoot(), sanitize(data.projectId)) + ':/usr/src/app:rw',
+                ],
+                Memory: resources.RAM,
+                // @ts-ignore
+                NanoCPUs: resources.NanoCPUs,
+            },
+        });
+    }
 
     const stream = await container.attach({
         stream: true,
@@ -55,7 +71,11 @@ export const startLsp = async (
         if (!isReady) {
             if (stdout.startsWith('ready')) {
                 isReady = true;
-                readyCallback();
+                try {
+                    readyCallback();
+                } catch (e) {}
+            } else {
+                console.warn(stdout);
             }
 
             return;
@@ -68,20 +88,23 @@ export const startLsp = async (
     });
 
     stream.on('end', () => {
-        socket.close();
-        container.remove();
+        try {
+            socket.close();
+            container.remove();
+        } catch (e) {}
     });
 
     socket.on('close', async () => {
         try {
-            await container.stop();
             await container.remove();
         } catch (e) {}
     });
 
     return async (incomingData: string) => {
-        if (!stream || !container) return;
-        stream.write(incomingData + '\n');
-        await container.wait();
+        try {
+            if (!stream || !container) return;
+            stream.write(incomingData + '\n');
+            await container.wait();
+        } catch (e) {}
     }
 }
