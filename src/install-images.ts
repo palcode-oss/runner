@@ -20,7 +20,11 @@ function pullWithPromise(tag: string) {
 }
 
 export const installImages = async () => {
-    const tags = getTags();
+    const tags = [
+        'palcode/lsp:latest',
+        ...getTags(),
+    ];
+
     for (const tag of tags) {
         try {
             await pullWithPromise(tag);

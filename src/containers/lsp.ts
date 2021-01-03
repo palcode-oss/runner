@@ -5,10 +5,13 @@ import path from 'path';
 import sanitize from 'sanitize-filename';
 import { cloneCode } from '../storage/clone';
 
+type Write = (data: any) => Promise<void>;
+
 export const startLsp = async (
     data: ClientLspInitMessage,
     socket: WebSocket,
-): Promise<((data: any) => Promise<void>) | undefined> => {
+    readyCallback: () => void,
+): Promise<Write | undefined> => {
     try {
         await cloneCode(data.projectId, data.schoolId);
     } catch (e) {
@@ -17,10 +20,10 @@ export const startLsp = async (
 
     const docker = getDockerodeSingleton();
     const container = await docker.createContainer({
-        Image: 'palcode/lsp',
+        Image: 'palcode/lsp:latest',
         WorkingDir: '/opt/lsp',
         Entrypoint: [
-            "yarn", "run", "start", data.language,
+            "node", "dist/index.js", data.language,
         ],
         Tty: true,
         OpenStdin: true,
@@ -28,9 +31,9 @@ export const startLsp = async (
             Binds: [
                 path.resolve(getStorageRoot(), sanitize(data.projectId)) + ':/usr/src/app:rw',
             ],
-            Memory: 100 * 1048576,
+            Memory: 500 * 1048576,
             // @ts-ignore
-            NanoCPUs: 0.2 * Math.pow(10, 9),
+            NanoCPUs: 0.4 * Math.pow(10, 9),
         },
     });
 
@@ -42,15 +45,35 @@ export const startLsp = async (
         hijack: true,
     });
 
+    await container.start();
+
     if (!stream) return;
+    let isReady = false;
     stream.on('data', (chunk: Buffer) => {
         const stdout = chunk.toString('utf8');
-        socket.send(stdout);
+
+        if (!isReady) {
+            if (stdout.startsWith('ready')) {
+                isReady = true;
+                readyCallback();
+            }
+
+            return;
+        }
+
+        try {
+            JSON.parse(stdout);
+            socket.send(stdout);
+        } catch (e) {}
     });
 
-    return async (incomingData: any) => {
+    stream.on('end', () => {
+        socket.close();
+    });
+
+    return async (incomingData: string) => {
         if (!stream || !container) return;
-        stream.write(incomingData);
+        stream.write(incomingData + '\n');
         await container.wait();
     }
 }

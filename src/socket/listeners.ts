@@ -49,7 +49,10 @@ export const initLspListeners = (ws: Server) => {
                 }
 
                 try {
-                    incomingListener = await startLsp(decodedData, socket);
+                    incomingListener = await startLsp(decodedData, socket, () => {
+                        socket.send('ready');
+                        containerRunning = true;
+                    });
                 } catch (e) {
                     socket.close();
                     return;
@@ -59,7 +62,6 @@ export const initLspListeners = (ws: Server) => {
                     socket.close();
                 }
 
-                containerRunning = true;
                 return;
             }
 

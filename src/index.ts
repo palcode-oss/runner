@@ -39,7 +39,7 @@ server.on('upgrade', (request: http.IncomingMessage, socket: Socket, head: Buffe
     }
 
     wsServer.handleUpgrade(request, socket, head, client => {
-        client.emit('connection', client, request);
+        wsServer.emit('connection', client, request);
     });
 });
 
