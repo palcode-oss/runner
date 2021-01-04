@@ -30,28 +30,28 @@ export const startLsp = async (
     const docker = getDockerodeSingleton();
     const containerName = `lsp-${data.projectId}`;
     let container = docker.getContainer(containerName);
-    try {
-        await container.inspect();
-    } catch (e) {
-        container = await docker.createContainer({
-            name: containerName,
-            Image: 'palcode/lsp:latest',
-            WorkingDir: '/opt/lsp',
-            Entrypoint: [
-                "node", "dist/index.js", data.language,
+    await container.remove({
+        force: true,
+    });
+
+    container = await docker.createContainer({
+        name: containerName,
+        Image: 'palcode/lsp:latest',
+        WorkingDir: '/opt/lsp',
+        Entrypoint: [
+            "node", "dist/index.js", data.language,
+        ],
+        Tty: true,
+        OpenStdin: true,
+        HostConfig: {
+            Binds: [
+                path.resolve(getStorageRoot(), sanitize(data.projectId)) + ':/usr/src/app:rw',
             ],
-            Tty: true,
-            OpenStdin: true,
-            HostConfig: {
-                Binds: [
-                    path.resolve(getStorageRoot(), sanitize(data.projectId)) + ':/usr/src/app:rw',
-                ],
-                Memory: resources.RAM,
-                // @ts-ignore
-                NanoCPUs: resources.NanoCPUs,
-            },
-        });
-    }
+            Memory: resources.RAM,
+            // @ts-ignore
+            NanoCPUs: resources.NanoCPUs,
+        },
+    });
 
     const stream = await container.attach({
         stream: true,
@@ -87,16 +87,18 @@ export const startLsp = async (
         } catch (e) {}
     });
 
-    stream.on('end', () => {
+    stream.on('end', async () => {
         try {
             socket.close();
-            container.remove();
+            await container.remove();
         } catch (e) {}
     });
 
     socket.on('close', async () => {
         try {
-            await container.remove();
+            await container.remove({
+                force: true,
+            });
         } catch (e) {}
     });
 
