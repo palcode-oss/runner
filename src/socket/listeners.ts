@@ -5,6 +5,7 @@ import { handleStop } from './handlers/stop';
 import { handleStdin } from './handlers/stdin';
 import { decode, isClientMessage, decodeLspInit } from 'palcode-sockets';
 import { startLsp } from '../containers/lsp';
+import type WebSocket from 'ws';
 
 export const initStdListeners = (ws: Server) => {
     const pingInterval = initPinging(ws);
@@ -32,50 +33,54 @@ export const initStdListeners = (ws: Server) => {
     });
 }
 
+export const safelyClose = (socket: WebSocket) => {
+    try {
+        socket.close();
+    } catch (e) {}
+}
+
 export const initLspListeners = (ws: Server) => {
     const pingInterval = initPinging(ws);
 
     ws.on('connection', async socket => {
         initPonging(socket);
 
-        let containerRunning = false;
+        let containerReady = false;
         let incomingListener: ((data: any) => Promise<void>) | undefined;
         socket.on('message', async (data: string) => {
-            if (data.startsWith('init/') && !containerRunning) {
+            if (data.startsWith('init/') && !containerReady) {
                 const decodedData = decodeLspInit(data);
                 if (!decodedData) {
-                    socket.close();
+                    safelyClose(socket);
                     return;
                 }
 
                 try {
                     incomingListener = await startLsp(decodedData, socket, () => {
                         socket.send('ready');
-                        containerRunning = true;
+                        containerReady = true;
                     });
                 } catch (e) {
-                    socket.close();
+                    safelyClose(socket);
                     return;
                 }
 
                 if (!incomingListener) {
-                    socket.close();
+                    safelyClose(socket);
                 }
 
                 return;
             }
 
-            if (incomingListener && containerRunning) {
+            if (incomingListener && containerReady) {
                 try {
                     await incomingListener(data);
                 } catch (e) {
-                    containerRunning = false;
-                    socket.close();
-                    return;
+                    containerReady = false;
+                    safelyClose(socket);
                 }
             } else {
-                socket.close();
-                return;
+                safelyClose(socket);
             }
         });
     });

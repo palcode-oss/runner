@@ -30,9 +30,12 @@ export const startLsp = async (
     const docker = getDockerodeSingleton();
     const containerName = `lsp-${data.projectId}`;
     let container = docker.getContainer(containerName);
-    await container.remove({
-        force: true,
-    });
+
+    try {
+        await container.remove({
+            force: true,
+        });
+    } catch (e) {}
 
     container = await docker.createContainer({
         name: containerName,
@@ -74,8 +77,6 @@ export const startLsp = async (
                 try {
                     readyCallback();
                 } catch (e) {}
-            } else {
-                console.warn(stdout);
             }
 
             return;
@@ -103,10 +104,8 @@ export const startLsp = async (
     });
 
     return async (incomingData: string) => {
-        try {
-            if (!stream || !container) return;
-            stream.write(incomingData + '\n');
-            await container.wait();
-        } catch (e) {}
+        if (!stream || !container) return;
+        stream.write(incomingData + '\n');
+        await container.wait();
     }
 }
