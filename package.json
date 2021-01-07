@@ -20,7 +20,7 @@
     "md5-file": "^5.0.0",
     "p-queue": "^6.6.2",
     "palcode-sockets": "^1.3.0",
-    "palcode-types": "^1.0.3",
+    "palcode-types": "^1.1.0",
     "readdirp": "^3.5.0",
     "sanitize-filename": "^1.6.3",
     "ws": "^7.4.1"
