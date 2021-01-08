@@ -21,7 +21,7 @@ function pullWithPromise(tag: string) {
 
 export const installImages = async () => {
     const tags = [
-        'palcode/lsp:latest',
+        'palcode/lsp:' + process.env.PAL_LSP_VERSION,
         ...getTags(),
     ];
 

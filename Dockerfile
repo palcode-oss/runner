@@ -11,6 +11,7 @@ ENV PAL_PROLOG_VERSION=8.3.13
 ENV PAL_GO_VERSION=1.15.6
 ENV PAL_CPP_VERSION=buster
 ENV PAL_PHP_VERSION=8
+ENV PAL_LSP_VERSION=v1.0.1
 
 # https://github.com/googleapis/google-api-nodejs-client/issues/761#issuecomment-311251914
 ENV UV_THREADPOOL_SIZE=8
